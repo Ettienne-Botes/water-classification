@@ -3,23 +3,23 @@ import pickle
 import pandas as pd
 
 # Load the water classification model
-with open('../model/waterClass_model.pkl', 'rb') as f:
+with open('model/waterClass_model.pkl', 'rb') as f:
     waterClass_model = pickle.load(f)
 
 #Load the DMS model
-with open('../model/DMS_model.pkl', 'rb') as f:
+with open('model/DMS_model.pkl', 'rb') as f:
     DMS_model = pickle.load(f)
 
 #Load the Deep Neural network model
-with open('../model/model_dnn.pkl', 'rb') as f:
+with open('model/model_dnn.pkl', 'rb') as f:
     DNN_model = pickle.load(f)
 
 #label mapping to convert the GRU's from a list of intergers to the list of GRU names
-with open('../model/label_mapping.pkl', 'rb') as f:
+with open('model/label_mapping.pkl', 'rb') as f:
     label_mapping = pickle.load(f)
 
 # Load example data from CSV (The averages of each GRU)
-GRU_averages = pd.read_csv('../../GRU_averages.csv')
+GRU_averages = pd.read_csv('assets/GRU_averages.csv')
 resource_units = GRU_averages['resource_unit']
 GRU_averages = GRU_averages.drop(['resource_unit'],axis=1)
 example_values = GRU_averages.iloc[0].to_dict()

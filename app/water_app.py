@@ -44,7 +44,7 @@ slider_labels = [
 selected_example = st.sidebar.selectbox("Select Example of averaged Resource unit water properties", ["Custom"] + list(resource_units) )
 
 # Load the GRU image
-GRU_image = "../assets/LowerOrangeCatchments_GRU.jpg"
+GRU_image = "assets/LowerOrangeCatchments_GRU.jpg"
 
 # Create a container for the image on the right side
 col2 = st.columns([1, 1])

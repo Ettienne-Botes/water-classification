@@ -18,16 +18,13 @@ with open('model/model_dnn.pkl', 'rb') as f:
 with open('model/label_mapping.pkl', 'rb') as f:
     label_mapping = pickle.load(f)
 
-# Load example data from CSV (The averages of each GRU)
 GRU_averages = pd.read_csv('assets/GRU_averages.csv')
 resource_units = GRU_averages['resource_unit']
 GRU_averages = GRU_averages.drop(['resource_unit'],axis=1)
-example_values = GRU_averages.iloc[0].to_dict()
+GRU_map = GRU_averages.set_index(resource_units)
 
 
-# Define slider labels
 slider_labels = [
-    #("DMS (mg/L)", "DMS (mg/L)", 0.01, 5000.00),
     ("EC-(mS/m)", "EC-(mS/m)", 0.01, 1000.00),
     ("pH-Diss-Water (PH)", "pH-Diss-Water (PH)", 0.01, 12.00),
     ("Ca (mg/L)", "Ca (mg/L)", 0.01, 500.00),
@@ -40,43 +37,47 @@ slider_labels = [
     ("F (mg/L)", "F (mg/L)", 0.01, 5.00)
 ]
 
-#create example data and list the resource units by name, note the resource units only contains the features of the units.
-selected_example = st.sidebar.selectbox("Select Example of averaged Resource unit water properties", ["Custom"] + list(resource_units) )
 
-# Load the GRU image
-GRU_image = "assets/LowerOrangeCatchments_GRU.jpg"
+if 'selected_example' not in st.session_state:
+    st.session_state.selected_example = 'Custom'
 
-# Create a container for the image on the right side
-col2 = st.columns([1, 1])
+for _, key, _, _ in slider_labels:
+    if key not in st.session_state:
+        st.session_state[key] = 0.01 
 
-# Display the image in the right column
-with col2[1]:
-    st.image(GRU_image, caption="Map of Lower Orange river with respected Ground resource units")
+def update_session_state_from_example():
+    """Callback function to update slider values when the selectbox changes."""
+    selected = st.session_state.select_example_box
+    if selected != "Custom":
+        new_values = GRU_map.loc[selected].to_dict()
+        for _, key, _, _ in slider_labels:
+            st.session_state[key] = new_values[key]
+    else:
 
-st.title("Water sample predictor")
-st.write("This app uses chemical substances of a water sample to predict  various elements of interest for the user using machine learning models,"
-         " following are the models with their respected accuracies and what they predicted:"
-              )
-st.markdown(
-    """
-    1. Random forest (99.99% accuracy) to dermine if the water is **safe for consumption.**
-    2. Random forest (99.99% accuracy) to predict the **water class**, class 0 is the best class 4 is the worst.  
-    3. Linear regression (99.5% accuracy) to predict the total amount of milligrams per Liter of **Disolved Mineral Salts (DMS)** or also called **Total Disolved Solids (TDS)**  
-    4. Deep Neural Network (66.7% accuracy) to predict from what **Resource Unit** the water came from.
-    """
-)
+        for _, key, _, _ in slider_labels:
+            if key in st.session_state:
+                st.session_state[key] = 0.01
 
-# receive the input data so that it can be used for prediction
-input_data = {}
 
 st.sidebar.title("Water Sample Input")
 
+selected_example = st.sidebar.selectbox(
+    "Select Example of averaged Resource unit water properties",
+    ["Custom"] + list(resource_units),
+    key='select_example_box',
+    on_change=update_session_state_from_example
+)
+
+
+input_data = {}
 for label, key, min_value, max_value in slider_labels:
-    if selected_example != "Custom":
-        initial_value = GRU_averages.loc[list(resource_units).index(selected_example)][key]
-    else:
-        initial_value = 0.01  # Default to zero for custom input
-    input_data[key] = st.sidebar.slider(label, min_value=min_value, max_value=max_value, key=key, value=initial_value)
+    input_data[key] = st.sidebar.slider(
+        label, 
+        min_value=min_value, 
+        max_value=max_value, 
+        key=key, 
+        value=st.session_state[key] 
+    )
 
 
 # Predict water safety
